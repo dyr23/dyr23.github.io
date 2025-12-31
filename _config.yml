@@ -1,3 +1,2 @@
-remote_theme: pages-themes/cayman@v0.2.0
-title: 欢迎来到我的个人网站
-description: 这里是 DYR23 的粉色空间
+title: DYR23的粉色空间
+theme: jekyll-theme-minimal
