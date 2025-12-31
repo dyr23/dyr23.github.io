@@ -3,411 +3,362 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>完美大话骰 - DYR23</title>
+    <title>六骰摇摇乐</title>
     <style>
+        /* 1. 基础设置 */
         body {
-            background-color: #2c3e50; 
-            font-family: "Microsoft YaHei", sans-serif;
+            background-color: #34495e; /* 深蓝灰色背景 */
+            font-family: sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            touch-action: none; 
-            perspective: 1000px; 
+            user-select: none; /* 禁止选中文字 */
             -webkit-user-select: none;
-            user-select: none;
         }
 
         h1 {
-            color: #ecf0f1;
+            color: white;
             font-size: 18px;
-            margin: 15px 0;
+            margin-top: 20px;
             opacity: 0.8;
         }
 
-        /* 舞台区域 */
+        /* 2. 游戏区域 */
         #stage {
             position: relative;
             width: 320px;
             height: 320px;
-            transform-style: preserve-3d;
-            transform: rotateX(20deg); 
-            margin-top: 30px;
+            margin-top: 40px;
+            /* 取消3D透视，防止某些手机渲染不出骰子 */
         }
 
-        /* 骰子容器 - 关键修改：增加过渡效果，防止穿模 */
+        /* 3. 骰子容器 (永远在底层) */
         #dice-container {
+            position: absolute;
+            top: 50px; /* 位置固定 */
+            left: 10px;
+            width: 300px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 12px;
-            padding: 10px;
-            position: absolute;
-            bottom: 20px;
-            width: 100%;
-            z-index: 1; 
-            transition: opacity 0.1s; /* 这一行配合隐身术 */
+            gap: 15px;
+            z-index: 1; /* 图层最低 */
         }
 
-        /* 骰子样式 */
+        /* 骰子本体 */
         .die {
-            width: 46px;
-            height: 46px;
-            background: #ecf0f1;
-            border-radius: 6px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            width: 50px;
+            height: 50px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            box-shadow: 0 4px 5px rgba(0,0,0,0.2);
             display: grid;
             grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-            padding: 3px;
+            padding: 4px;
             box-sizing: border-box;
         }
-
+        
+        /* 骰子点点 */
         .dot {
-            background-color: #c0392b;
+            width: 10px;
+            height: 10px;
+            background-color: #e74c3c;
             border-radius: 50%;
-            width: 9px;
-            height: 9px;
             margin: auto;
         }
 
-        /* 杯子样式 */
-        #dice-cup {
+        /* 4. 杯子 (永远在顶层) */
+        #cup {
             position: absolute;
-            bottom: -10px;
-            left: 50%;
-            margin-left: -130px;
-            width: 260px;
+            top: 20px; /* 初始盖住骰子 */
+            left: 35px; /* 居中 */
+            width: 250px;
             height: 240px;
-            background: linear-gradient(to right, #3e2723, #5d4037, #3e2723);
-            border-radius: 25px 25px 5px 5px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            z-index: 99; /* 确保杯子永远在最上面 */
+            background-color: #8e44ad; /* 紫色杯子 */
+            border-radius: 20px 20px 0 0;
+            border-bottom: 15px solid #6c3483;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            z-index: 10; /* 图层最高，绝对盖得住 */
+            
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            padding-bottom: 20px;
-            color: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.3);
             font-weight: bold;
-            font-size: 24px;
-            border-bottom: 12px solid #271c19;
-            /* 关键：给杯子一个Z轴高度，让它物理上浮在骰子上面 */
-            transform: translateZ(50px); 
+            font-size: 30px;
+            padding-bottom: 20px;
+            
+            /* 加上过渡动画，让滑动顺滑 */
+            transition: transform 0.1s; 
         }
 
-        #touch-area {
+        /* 5. 触摸层 (全屏控制) */
+        #touch-layer {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 999; 
+            z-index: 999;
         }
 
+        /* 6. 按钮区 */
         .controls {
             margin-top: auto;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            z-index: 1000;
             text-align: center;
-            color: #bdc3c7;
-            z-index: 100;
-            width: 90%;
-            pointer-events: none; /* 让触摸穿透到控制层下面 */
+            pointer-events: none; /* 让触摸穿透 */
         }
-        /* 让按钮恢复可点击 */
-        .btn, a { pointer-events: auto; }
-
         .btn {
-            background-color: #d35400;
+            pointer-events: auto; /* 按钮恢复可点 */
+            background-color: #e67e22;
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 30px;
-            margin: 5px;
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 50px;
             font-weight: bold;
-            box-shadow: 0 5px 0 #a04000;
+            box-shadow: 0 5px #d35400;
+            margin-bottom: 10px;
         }
-        .btn:active { transform: translateY(4px); box-shadow: none; }
-        .btn-permission { background-color: #c0392b; box-shadow: 0 5px 0 #96281b; }
+        .btn:active { transform: translateY(5px); box-shadow: none; }
+        
+        #status { color: #f1c40f; margin-bottom: 10px; font-size: 14px; }
 
-        #status-text {
-            font-size: 16px;
-            margin-bottom: 15px;
-            color: #f1c40f;
-            text-shadow: 1px 1px 0 #000;
+        /* 摇晃动画 */
+        .shaking { animation: shake-anim 0.3s infinite; }
+        @keyframes shake-anim {
+            0% { transform: rotate(0deg) translate(0, 0); }
+            25% { transform: rotate(5deg) translate(5px, 0); }
+            50% { transform: rotate(-5deg) translate(-5px, 0); }
+            75% { transform: rotate(5deg) translate(5px, 0); }
+            100% { transform: rotate(0deg) translate(0, 0); }
         }
-
-        @keyframes violent-shake {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            10% { transform: translate(-15px, -5px) rotate(-5deg); }
-            30% { transform: translate(15px, 5px) rotate(5deg); }
-            50% { transform: translate(-15px, -5px) rotate(-5deg); }
-            70% { transform: translate(10px, 5px) rotate(5deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
-        }
-        .cup-shaking { animation: violent-shake 0.3s infinite; }
-
     </style>
 </head>
 <body>
 
-    <h1>🎲 沉浸式大话骰 (6颗)</h1>
+    <h1>🎲 六骰摇摇乐</h1>
 
     <div id="stage">
-        <div id="dice-container" style="opacity: 0;"></div>
-        <div id="dice-cup">DYR</div>
+        <div id="dice-container"></div>
+        <div id="cup">DYR</div>
     </div>
-    
-    <div id="touch-area"></div>
+
+    <div id="touch-layer"></div>
 
     <div class="controls">
-        <div id="status-text">请先点击下方红色按钮激活</div>
-        
-        <button class="btn btn-permission" id="init-btn">🔴 点我开始游戏</button>
-        
-        <button class="btn" id="manual-btn" style="display:none;">🖐 摇不动点我</button>
-        
-        <br><br>
-        <a href="index.html" style="color: #607d8b; text-decoration: none; font-size:14px;">← 返回首页</a>
+        <div id="status">点击按钮激活声音</div>
+        <button class="btn" id="main-btn">🔊 开启声音与摇一摇</button>
+        <br>
+        <button class="btn" id="manual-shake" style="display:none; background-color:#27ae60;">🖐 手动摇</button>
     </div>
 
     <script>
-        // --- 核心配置 ---
+        // --- 配置 ---
         const DICE_COUNT = 6;
-        // 灵敏度大大提高 (数字越小越灵敏，之前是25，现在15)
-        let shakeThreshold = 15; 
-        
-        // --- DOM ---
-        const container = document.getElementById('dice-container');
-        const cup = document.getElementById('dice-cup');
-        const touchArea = document.getElementById('touch-area');
-        const statusText = document.getElementById('status-text');
-        const initBtn = document.getElementById('init-btn');
-        const manualBtn = document.getElementById('manual-btn');
+        const SHAKE_THRESHOLD = 15; // 灵敏度 (越小越灵敏)
 
-        // --- 状态 ---
-        let isShaking = false;
-        let isCupOpen = false; // 默认是盖着的
-        let lastX=0, lastY=0, lastZ=0, lastUpdate=0;
+        // --- 元素获取 ---
+        const container = document.getElementById('dice-container');
+        const cup = document.getElementById('cup');
+        const touchLayer = document.getElementById('touch-layer');
+        const mainBtn = document.getElementById('main-btn');
+        const manualBtn = document.getElementById('manual-shake');
+        const statusDiv = document.getElementById('status');
+
+        // --- 变量 ---
+        let audioCtx;
+        let isCupOpen = false;
         let startY = 0;
         let currentCupY = 0;
-        const maxMoveUp = -220; 
+        let lastX=0, lastY=0, lastZ=0, lastTime=0;
+        let isShaking = false;
 
-        // 音频相关
-        let audioCtx;
-        
-        // --- 1. 初始化逻辑 (最重要的一步) ---
-        initBtn.addEventListener('click', function() {
-            // A. 初始化音频
+        // --- 1. 初始化 (点击按钮) ---
+        mainBtn.addEventListener('click', () => {
+            // A. 尝试播放声音 (激活AudioContext)
             initAudio();
-            playClickSound(); // 立即播一声测试
+            playBeep(); 
 
-            // B. 申请摇一摇权限
+            // B. 请求摇一摇权限 (iOS)
             if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                 DeviceMotionEvent.requestPermission().then(state => {
                     if (state === 'granted') {
-                        window.addEventListener('devicemotion', handleShake);
+                        window.addEventListener('devicemotion', handleMotion);
                         startGame();
                     } else {
-                        alert("拒绝了权限将无法摇一摇，请使用按钮。");
+                        alert("权限被拒绝，请用绿色按钮手动摇");
                         startGame();
                     }
-                }).catch(e => {
-                    console.error(e);
-                    startGame(); // 即使报错也进入游戏
-                });
+                }).catch(e => startGame());
             } else {
                 // 安卓直接监听
-                window.addEventListener('devicemotion', handleShake);
+                window.addEventListener('devicemotion', handleMotion);
                 startGame();
             }
         });
 
         function startGame() {
-            initBtn.style.display = 'none';
+            mainBtn.style.display = 'none';
             manualBtn.style.display = 'inline-block';
-            statusText.innerText = "盖好杯子，用力甩手机！";
-            createDice();
+            statusDiv.innerText = "盖好杯子，用力摇晃手机！";
+            createDice(); // 生成骰子
         }
 
-        // --- 2. 解决视觉穿模的“隐身术” ---
-        function updateDiceVisibility(cupY) {
-            // 当杯子还没有被明显揭开时（移动距离小于50），让骰子完全透明
-            // 这样杯子往下滑的时候，骰子实际上是看不见的，就不怕穿模了
-            if (cupY > -50) {
-                container.style.opacity = '0';
-            } else {
-                container.style.opacity = '1';
+        // --- 2. 生成骰子 (纯CSS画点，绝对稳) ---
+        const faceMap = {
+            1: [4], 2: [0,8], 3: [0,4,8], 4: [0,2,6,8], 5: [0,2,4,6,8], 6: [0,2,3,5,6,8]
+        };
+
+        function createDice() {
+            container.innerHTML = '';
+            for(let i=0; i<DICE_COUNT; i++){
+                let die = document.createElement('div');
+                die.className = 'die';
+                renderDieFace(die, 6); // 默认6点
+                container.appendChild(die);
             }
         }
 
-        // --- 3. 音效引擎 (Web Audio API) ---
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        function renderDieFace(die, num) {
+            die.innerHTML = '';
+            let dots = faceMap[num];
+            for(let i=0; i<9; i++){
+                let d = document.createElement('div');
+                if(dots.includes(i)) {
+                    d.className = 'dot';
+                    if(num===1) { d.style.width='14px'; d.style.height='14px'; d.style.backgroundColor='red'; }
+                } else {
+                    d.style.visibility = 'hidden'; // 占位
+                }
+                die.appendChild(d);
+            }
         }
 
-        // 无论点哪里，都尝试唤醒音频，防止静音
-        document.body.addEventListener('touchstart', function() {
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        }, {passive: true});
+        // --- 3. 极简音效 (嗡嗡声) ---
+        function initAudio() {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+        }
 
-        function playClickSound() {
-            if (!audioCtx) return;
-            const t = audioCtx.currentTime;
-            const osc = audioCtx.createBufferSource();
-            const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.1, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < buffer.length; i++) data[i] = Math.random() * 2 - 1;
-            osc.buffer = buffer;
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.value = 1000 + Math.random() * 500;
-            const gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(0.8, t);
-            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-            osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(t); osc.stop(t + 0.1);
+        function playBeep() {
+            if(!audioCtx) return;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'square'; // 比较刺耳的声音，容易听到
+            osc.frequency.value = 150; // 低频噪音模拟撞击
+            
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
         }
 
         function playRattle() {
-            // 连播几声
-            for(let i=0; i<6; i++) setTimeout(playClickSound, i * 60 + Math.random()*30);
+            // 连响3声
+            playBeep();
+            setTimeout(playBeep, 100);
+            setTimeout(playBeep, 200);
         }
 
-        // --- 4. 摇晃检测 ---
-        manualBtn.addEventListener('click', () => { if(checkCup()) doShake(); });
+        // --- 4. 摇晃逻辑 ---
+        manualBtn.addEventListener('click', doShake);
 
-        function handleShake(event) {
-            if (isShaking || isCupOpen) return;
-            let acc = event.accelerationIncludingGravity;
-            let curTime = new Date().getTime();
-            if ((curTime - lastUpdate) > 100) {
-                let diffTime = curTime - lastUpdate;
-                lastUpdate = curTime;
-                let speed = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ) / diffTime * 10000;
+        function handleMotion(e) {
+            if(isShaking || isCupOpen) return; // 盖子开了不许摇
+            
+            let acc = e.accelerationIncludingGravity;
+            let now = Date.now();
+            if((now - lastTime) > 100) {
+                let diff = now - lastTime;
+                lastTime = now;
+                let speed = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ) / diff * 10000;
                 
-                if (speed > shakeThreshold) {
+                if(speed > SHAKE_THRESHOLD) {
                     doShake();
                 }
                 lastX = acc.x; lastY = acc.y; lastZ = acc.z;
             }
         }
 
-        function checkCup() {
-            if (isCupOpen) {
-                statusText.innerText = "❌ 请先向下滑动盖上杯子！";
-                setTimeout(() => statusText.innerText = "上滑揭盖 | 下滑盖上", 2000);
-                return false;
-            }
-            return true;
-        }
-
         function doShake() {
+            if(isCupOpen) {
+                statusDiv.innerText = "❌ 请先向下滑动盖上杯子";
+                return;
+            }
+
             isShaking = true;
-            statusText.innerText = "🌪️ 正在洗牌...";
-            statusText.style.color = "#2ecc71";
+            statusDiv.innerText = "🌪️ 正在洗牌...";
             
-            // 震动 + 声音
-            if (navigator.vibrate) navigator.vibrate(200);
-            playRattle();
+            if(navigator.vibrate) navigator.vibrate(200);
+            playRattle(); // 播放声音
+            
+            cup.classList.add('shaking');
 
-            cup.classList.add('cup-shaking');
-
-            // 骰子变化动画
+            // 内部换点数
             let timer = setInterval(() => {
-                const dice = document.querySelectorAll('.die');
-                dice.forEach(die => {
-                    drawFace(die, Math.floor(Math.random()*6)+1);
-                    die.style.transform = `rotate(${Math.random()*360}deg)`;
-                });
-            }, 80);
+                let dice = document.querySelectorAll('.die');
+                dice.forEach(d => renderDieFace(d, Math.floor(Math.random()*6)+1));
+            }, 100);
 
             setTimeout(() => {
                 clearInterval(timer);
-                cup.classList.remove('cup-shaking');
+                cup.classList.remove('shaking');
                 isShaking = false;
-                statusText.innerText = "✅ 摇好了！上滑开盅";
-                statusText.style.color = "#f1c40f";
-                
-                // 定格
-                const dice = document.querySelectorAll('.die');
-                dice.forEach(die => {
-                    drawFace(die, Math.floor(Math.random()*6)+1);
-                    die.style.transform = `rotate(${Math.floor(Math.random()*4)*90}deg)`;
-                });
+                statusDiv.innerText = "✅ 摇好了！上滑开盅";
             }, 600);
         }
 
-        // --- 5. 渲染骰子 ---
-        const faceConfig = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
-        function createDice() {
-            container.innerHTML = '';
-            for (let i=0; i<DICE_COUNT; i++) {
-                let die = document.createElement('div');
-                die.className = 'die';
-                drawFace(die, 6);
-                container.appendChild(die);
+        // --- 5. 滑动控制 (绝对跟随) ---
+        touchLayer.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // 防止滚动
+            startY = e.touches[0].clientY;
+            // 获取当前杯子位置 (解析translateY)
+            let transform = window.getComputedStyle(cup).transform;
+            let matrix = new DOMMatrix(transform);
+            currentCupY = matrix.m42;
+            cup.style.transition = 'none'; // 拖动时关掉动画
+        }, {passive: false});
+
+        touchLayer.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            let delta = e.touches[0].clientY - startY;
+            let newY = currentCupY + delta;
+            
+            // 限制范围: 最多上移250px (揭开), 最多下移0px (盖住)
+            if(newY < -250) newY = -250;
+            if(newY > 0) newY = 0;
+
+            cup.style.transform = `translateY(${newY}px)`;
+            
+            // 状态判断
+            if(newY < -100) isCupOpen = true;
+            else isCupOpen = false;
+
+        }, {passive: false});
+
+        touchLayer.addEventListener('touchend', (e) => {
+            cup.style.transition = 'transform 0.2s'; // 恢复动画
+            // 自动吸附
+            let transform = window.getComputedStyle(cup).transform;
+            let matrix = new DOMMatrix(transform);
+            let finalY = matrix.m42;
+
+            if(finalY < -100) {
+                cup.style.transform = `translateY(-250px)`; // 全开
+                isCupOpen = true;
+            } else {
+                cup.style.transform = `translateY(0px)`; // 全关
+                isCupOpen = false;
             }
-        }
-        function drawFace(die, num) {
-            die.innerHTML = '';
-            const pos = faceConfig[num];
-            for (let i=0; i<9; i++) {
-                let cell = document.createElement('div');
-                if (pos.includes(i)) {
-                    let dot = document.createElement('div');
-                    dot.className = 'dot';
-                    if(num===1) { dot.style.width='14px'; dot.style.height='14px'; dot.style.backgroundColor='red'; }
-                    cell.appendChild(dot);
-                }
-                die.appendChild(cell);
-            }
-        }
+        });
 
-        // --- 6. 滑动揭盖逻辑 (带防穿模) ---
-        function initTouchGestures() {
-            touchArea.addEventListener('touchstart', function(e) {
-                startY = e.touches[0].clientY;
-                const style = window.getComputedStyle(cup);
-                const matrix = new WebKitCSSMatrix(style.transform);
-                currentCupY = matrix.m42; 
-                cup.style.transition = 'none';
-            }, {passive:false});
-
-            touchArea.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-                const deltaY = e.touches[0].clientY - startY;
-                let newPosY = Math.max(maxMoveUp, Math.min(0, currentCupY + deltaY));
-                
-                cup.style.transform = `translateY(${newPosY}px) translateZ(50px)`;
-                
-                // 实时检测透明度，防止穿模
-                updateDiceVisibility(newPosY);
-
-                isCupOpen = newPosY < -100;
-            }, {passive:false});
-
-            touchArea.addEventListener('touchend', function(e) {
-                cup.style.transition = 'transform 0.3s ease-out';
-                const style = window.getComputedStyle(cup);
-                const matrix = new WebKitCSSMatrix(style.transform);
-                const finalY = matrix.m42;
-
-                if (finalY < maxMoveUp/2) {
-                    // 开
-                    cup.style.transform = `translateY(${maxMoveUp}px) translateZ(50px)`;
-                    updateDiceVisibility(maxMoveUp); 
-                    isCupOpen = true;
-                } else {
-                    // 关
-                    cup.style.transform = `translateY(0px) translateZ(50px)`;
-                    updateDiceVisibility(0);
-                    isCupOpen = false;
-                }
-            });
-        }
-        
-        initTouchGestures();
     </script>
 </body>
 </html>
