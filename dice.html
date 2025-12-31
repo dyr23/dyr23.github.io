@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>六骰摇摇乐 - 840泰坦版</title>
+    <title>六骰摇摇乐 - 1000上帝版</title>
     <style>
         /* 1. 基础设置 */
         body {
@@ -136,7 +136,7 @@
 </head>
 <body>
 
-    <h1>🎲 六骰摇摇乐 (840难度)</h1>
+    <h1>🎲 六骰摇摇乐 (1000上帝版)</h1>
 
     <div id="stage">
         <div id="dice-container"></div>
@@ -155,9 +155,9 @@
     <script>
         const DICE_COUNT = 6;
         
-        // 【已修改】阈值设定为 840
-        // 这需要非常剧烈的爆发力才能触发
-        const SHAKE_THRESHOLD = 840; 
+        // 【已修改】阈值设定为 1000
+        // 这需要毁灭性的力量才能触发
+        const SHAKE_THRESHOLD = 1000; 
 
         const container = document.getElementById('dice-container');
         const cup = document.getElementById('cup');
@@ -197,7 +197,7 @@
         function startGame() {
             mainBtn.style.display = 'none';
             manualBtn.style.display = 'inline-block';
-            statusDiv.innerText = "盖好杯子，极速爆发摇动！";
+            statusDiv.innerText = "请务必抓紧手机，用力甩！";
             createDice();
         }
 
@@ -272,7 +272,7 @@
                 lastTime = now;
                 let speed = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ) / diff * 10000;
                 
-                // 阈值判断
+                // 1000 阈值判断！
                 if(speed > SHAKE_THRESHOLD) {
                     doShake();
                 }
