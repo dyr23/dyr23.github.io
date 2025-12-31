@@ -1,0 +1,24 @@
+---
+---
+@import "jekyll-theme-minimal"; 
+
+body {
+  /* 这是一个很温柔的浅粉色 */
+  background-color: #FFF0F5; 
+  /* 设置中文字体，让文字更好看 */
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  color: #5D4037; /* 深褐色的文字，和粉色很搭 */
+}
+
+h1 {
+  /* 标题颜色：深粉色/玫瑰红 */
+  color: #FF69B4; 
+  text-align: center;
+  margin-top: 60px;
+  font-weight: bold;
+}
+
+/* 如果你以后有文章列表，让链接也变成粉色系 */
+a {
+  color: #DB7093;
+}
