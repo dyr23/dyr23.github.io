@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>六骰摇摇乐 - 带开关版</title>
+    <title>六骰摇摇乐 - 800难度</title>
     <style>
         /* 1. 基础设置 */
         body {
@@ -99,10 +99,11 @@
             z-index: 999;
         }
 
-        /* 6. 按钮区 */
+        /* 6. 按钮区 - 这里做了修改，增加了底部距离 */
         .controls {
             margin-top: auto;
-            margin-bottom: 30px;
+            /* 之前是 30px，现在改为 100px，让按钮往上跑 */
+            margin-bottom: 100px; 
             z-index: 1000;
             text-align: center;
             pointer-events: none;
@@ -110,7 +111,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 15px; /* 按钮之间的间距稍微加大一点 */
         }
         
         /* 通用按钮样式 */
@@ -129,17 +130,9 @@
         }
         .btn:active { transform: translateY(3px); box-shadow: none; }
 
-        /* 初始激活按钮 (橙色) */
         #main-btn { background-color: #d35400; }
-        
-        /* 手动摇按钮 (蓝色) */
         #manual-shake { background-color: #2980b9; }
-
-        /* 开关按钮 (动态变色) */
-        #toggle-shake { 
-            /* 默认是绿色，表示开启 */
-            background-color: #27ae60; 
-        }
+        #toggle-shake { background-color: #27ae60; }
 
         #status { color: #f1c40f; font-size: 14px; text-shadow: 1px 1px 1px black; min-height: 20px;}
 
@@ -156,7 +149,7 @@
 </head>
 <body>
 
-    <h1>🎲 六骰摇摇乐</h1>
+    <h1>🎲 六骰摇摇乐 (800难度)</h1>
 
     <div id="stage">
         <div id="dice-container"></div>
@@ -178,9 +171,8 @@
     <script>
         const DICE_COUNT = 6;
         
-        // 【灵敏度】300 = 需要用力甩 (比较适中)
-        // 如果想要特别难摇，改成 800 或 1000
-        const SHAKE_THRESHOLD = 300; 
+        // 【灵敏度调整】设为 800
+        const SHAKE_THRESHOLD = 800; 
 
         const container = document.getElementById('dice-container');
         const cup = document.getElementById('cup');
@@ -197,10 +189,10 @@
         let lastX=0, lastY=0, lastZ=0, lastTime=0;
         let isShaking = false;
         
-        // 【新功能】控制摇晃是否生效的开关
+        // 摇晃开关默认开启
         let isShakeEnabled = true; 
 
-        // --- 1. 初始化 ---
+        // 初始化
         mainBtn.addEventListener('click', () => {
             initAudio();
             playBeep(); 
@@ -223,35 +215,32 @@
 
         function startGame() {
             mainBtn.style.display = 'none';
-            toggleBtn.style.display = 'inline-block'; // 显示开关
-            manualBtn.style.display = 'inline-block'; // 显示手动按钮
-            statusDiv.innerText = "盖好杯子，用力甩动手机！";
+            toggleBtn.style.display = 'inline-block';
+            manualBtn.style.display = 'inline-block';
+            statusDiv.innerText = "盖好杯子，极速甩动手机！";
             createDice();
         }
 
-        // --- 2. 摇晃开关逻辑 (核心新功能) ---
+        // 开关逻辑
         toggleBtn.addEventListener('click', () => {
-            isShakeEnabled = !isShakeEnabled; // 切换状态
+            isShakeEnabled = !isShakeEnabled; 
             
             if (isShakeEnabled) {
-                // 变成开启状态
                 toggleBtn.innerText = "✅ 摇晃检测：开启";
-                toggleBtn.style.backgroundColor = "#27ae60"; // 绿色
+                toggleBtn.style.backgroundColor = "#27ae60"; 
                 statusDiv.innerText = "现在摇晃手机有效！";
             } else {
-                // 变成关闭状态
                 toggleBtn.innerText = "⛔ 摇晃检测：暂停";
-                toggleBtn.style.backgroundColor = "#c0392b"; // 红色
+                toggleBtn.style.backgroundColor = "#c0392b"; 
                 statusDiv.innerText = "摇晃已锁定，防误触模式";
             }
         });
 
-        // --- 3. 摇晃逻辑 ---
+        // 摇晃逻辑
         manualBtn.addEventListener('click', doShake);
 
         function handleMotion(e) {
-            // 【关键检查】如果开关关了(isShakeEnabled为false)，直接忽略摇晃
-            if (!isShakeEnabled) return;
+            if (!isShakeEnabled) return; // 开关关了就不理会
 
             if(isShaking || isCupOpen) return;
             
@@ -262,6 +251,7 @@
                 lastTime = now;
                 let speed = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ) / diff * 10000;
                 
+                // 800 阈值
                 if(speed > SHAKE_THRESHOLD) {
                     doShake();
                 }
@@ -269,7 +259,6 @@
             }
         }
 
-        // --- 4. 执行摇骰子 ---
         function doShake() {
             if(isCupOpen) {
                 statusDiv.innerText = "❌ 请先向下滑动盖上杯子";
@@ -300,7 +289,7 @@
             }, 600);
         }
 
-        // --- 5. 骰子绘制 ---
+        // 骰子绘制
         const faceMap = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 
         function createDice() {
@@ -328,7 +317,7 @@
             }
         }
 
-        // --- 6. 音效 ---
+        // 音效
         function initAudio() {
             if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -358,7 +347,7 @@
             }
         }
 
-        // --- 7. 滑动控制 ---
+        // 滑动控制
         touchLayer.addEventListener('touchstart', (e) => {
             e.preventDefault();
             startY = e.touches[0].clientY;
