@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>六骰摇摇乐 - 550难度版</title>
+    <title>六骰摇摇乐 - 840泰坦版</title>
     <style>
         /* 1. 基础设置 */
         body {
@@ -136,7 +136,7 @@
 </head>
 <body>
 
-    <h1>🎲 六骰摇摇乐 (550难度)</h1>
+    <h1>🎲 六骰摇摇乐 (840难度)</h1>
 
     <div id="stage">
         <div id="dice-container"></div>
@@ -155,9 +155,9 @@
     <script>
         const DICE_COUNT = 6;
         
-        // 【已修改】阈值设定为 550
-        // 这需要极强的爆发力才能触发
-        const SHAKE_THRESHOLD = 550; 
+        // 【已修改】阈值设定为 840
+        // 这需要非常剧烈的爆发力才能触发
+        const SHAKE_THRESHOLD = 840; 
 
         const container = document.getElementById('dice-container');
         const cup = document.getElementById('cup');
@@ -197,7 +197,7 @@
         function startGame() {
             mainBtn.style.display = 'none';
             manualBtn.style.display = 'inline-block';
-            statusDiv.innerText = "盖好杯子，极速甩动手机！";
+            statusDiv.innerText = "盖好杯子，极速爆发摇动！";
             createDice();
         }
 
